@@ -365,7 +365,7 @@ def getImageFromStorepage():
         respone = r.json()
         
         coverImage = respone[str(gameSteamID)]["data"]["header_image"]
-        coverImageText = f"{gameName} on Steam"
+        coverImageText = f"{getDisplayName()} on Steam"
         # do note this is NOT saved to disk, just in case someone ever adds an entry to the SGDB later on
         
         log(f"successfully found steam's icon for {gameName}")
@@ -642,9 +642,18 @@ def getSteamRichPresence():
     
     
 
+# the name shown to the user - prefers Discord's naming of the game over Steam's, if Discord knows the game
+# `gameName` itself stays untouched, as it's used for detecting game changes and for lookups on Steam
+def getDisplayName():
+    return discordGameName or gameName
+
 # requests a list of all games recognized internally by discord, if any of the names matches
 # the detected game, save the discord game ID associated with said title to RAM, this is used to report to discord as that game 
 def getGameDiscordID(loops=0):
+    # reset Discord's name of the game, so the name of a previous game can't carry over
+    global discordGameName
+    discordGameName = ""
+
     log(f"fetching the Discord game ID for {gameName}")
     r = makeWebRequest("https://discord.com/api/v9/applications/detectable")
 
@@ -712,6 +721,8 @@ def getGameDiscordID(loops=0):
         if removeChars(gameName.lower(), ignoredChars) in gameNames:
             log(f"found the discord game ID for {removeChars(gameName.lower(), ignoredChars)}")
             appID = i["id"]
+            # save Discord's canonical name, even if the match came from an alias or a variant
+            discordGameName = i["name"]
             return
 
     # if the game was fetched using the local checker, instead of thru steam
@@ -893,9 +904,9 @@ def setPresenceDetails():
         if price != None:
             if price == "Free":
                 price = "Free"
-            label = f"{gameName} on steam - {price}"
+            label = f"{getDisplayName()} on steam - {price}"
             if len(label) > 32:
-                label = f"{gameName} - {price}"
+                label = f"{getDisplayName()} - {price}"
             if len(label) > 32:
                 label = f"get it on steam! - {price}"
             if len(label) > 32:
@@ -1045,6 +1056,7 @@ def main():
     global appID
     global startTime
     global gameName
+    global discordGameName
     global gameRichPresence
     global activeRichPresence
     global gameSteamID
@@ -1128,6 +1140,7 @@ def main():
     gameReviewScore = 0
     gameReviewString = ""
     gameName = ""
+    discordGameName = ""
     previousGameName = ""
     gameRichPresence = ""
     # the rich presence text that's actually in the current discord presence, set to beaver cause it can't start empty
