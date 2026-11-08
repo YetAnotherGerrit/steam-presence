@@ -657,7 +657,7 @@ def getGameDiscordID(loops=0):
     discordGameName = ""
 
     log(f"fetching the Discord game ID for {gameName}")
-    r = makeWebRequest("https://discord.com/api/v9/applications/detectable")
+    r = makeWebRequest("https://discord.com/api/v10/applications/detectable")
 
     response = []
     if r == "error":
@@ -762,7 +762,7 @@ def getImageFromDiscord():
     log("getting icon from Discord")
 
     try: 
-        r = makeWebRequest(f"https://discord.com/api/v8/applications/{appID}/rpc")
+        r = makeWebRequest(f"https://discord.com/api/v10/applications/{appID}/rpc")
         if r == "error":
             return
         
